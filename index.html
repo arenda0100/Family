@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Family House — загородный дом посуточно в Гродно (Ратичи) · Купель, баня, бассейн</title>
+  <meta name="description" content="Family House — загородный дом посуточно в а/г Ратичи, Гродно. Горячая купель с массажем, баня, летний бассейн, терраса с камином, мангал. До 6 гостей, 2 спальни. 300–400 р за дом.">
+  <meta name="theme-color" content="#0b0d1a">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Family House — Сутки в Ратичах">
+  <meta property="og:description" content="Дом посуточно под Гродно: купель с массажем, баня, бассейн, камин и мангал. До 6 гостей.">
+  <meta property="og:locale" content="ru_RU">
+
+  <!-- Шрифты: Cormorant (Display, с курсивом) + Onest (гротеск). Оба поддерживают кириллицу -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
+  <!-- Lenis CSS (обязателен для корректной работы плавного скролла) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.css">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Библиотеки (defer: выполняются по порядку, после разбора DOM) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- SEO: структурированные данные -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    "name": "Family House",
+    "description": "Загородный дом посуточно: горячая купель с массажем, баня, летний бассейн, терраса с камином, мангал. До 6 гостей, 2 спальни.",
+    "telephone": "+375292873774",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Ратичи, Гродно",
+      "addressCountry": "BY"
+    },
+    "priceRange": "300-400 BYN",
+    "amenityFeature": [
+      { "@type": "LocationFeatureSpecification", "name": "Горячая купель с массажем", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Баня", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Летний бассейн", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Терраса с камином", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Мангал", "value": true }
+    ]
+  }
+  </script>
+</head>
+
+<body data-phase="predawn">
+
+  <!-- SVG-определения (градиенты логотипа и иконок), не отображается -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="g-flame" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#ff4d2e"/>
+        <stop offset="0.55" stop-color="#ff9a3c"/>
+        <stop offset="1" stop-color="#ffe19a"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+
+  <noscript>
+    <p style="padding:24px;font-family:sans-serif">Для просмотра интерактивного сайта включите JavaScript. Контакты: <a href="tel:+375292873774">+375 29 287 37 74</a>, Гродно, а/г Ратичи.</p>
+  </noscript>
+
+  <!-- ========== PRELOADER ========== -->
+  <div class="preloader" id="preloader" role="status" aria-live="polite">
+    <div class="preloader__inner">
+      <p class="preloader__label">Family House</p>
+      <p class="preloader__text">Разжигаем камин</p>
+      <div class="preloader__bar"><span class="preloader__bar-fill" id="preloaderFill"></span></div>
+      <p class="preloader__count"><span id="preloaderCount">0</span>%</p>
+    </div>
+  </div>
+
+  <!-- ========== КАСТОМНЫЙ КУРСОР ========== -->
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <span class="cursor__ring"><span class="cursor__label" id="cursorLabel"></span></span>
+    <span class="cursor__dot"></span>
+  </div>
+
+  <!-- ========== ФОНОВЫЙ МИР (WebGL + слои пейзажа) ========== -->
+  <div class="world" aria-hidden="true">
+    <canvas id="webgl"></canvas>
+    <div class="world__stars" id="stars"></div>
+    <div class="world__landscape" id="landscape"><!-- слои холмов/леса сгенерирует JS (SVG) --></div>
+    <div class="world__fireflies" id="fireflies"></div>
+    <div class="world__vignette"></div>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ========== ШАПКА ========== -->
+  <header class="header" id="header">
+    <a class="logo" href="#hero" aria-label="Family House — на главную" data-cursor="Домой">
+      <svg class="logo__mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <!-- пар из трубы -->
+        <path class="logo__steam logo__steam--1" pathLength="1" d="M43 20c-3.200-3.400 3.200-6.600 0-10.500"/>
+        <path class="logo__steam logo__steam--2" pathLength="1" d="M50 22c-3.200-3.400 3.200-6.600 0-10.500"/>
+        <!-- крыша и стены -->
+        <path class="logo__roof" pathLength="1" d="M8 34 32 12l24 22"/>
+        <path class="logo__walls" pathLength="1" d="M15 30v24h34V30"/>
+        <!-- пламя внутри дома -->
+        <path class="logo__flame" d="M32 51c-7-3-8-10-3-16 1 4 4 5 5 3 1-2 0-5-1-8 7 4 11 12 7 17-2 3-5 4-8 4z" fill="url(#g-flame)"/>
+        <circle class="logo__spark" cx="32" cy="22" r="1.400" fill="#ffd9a0"/>
+      </svg>
+      <span class="logo__word">
+        <span class="logo__word-top">Family</span>
+        <span class="logo__word-bottom">House</span>
+      </span>
+    </a>
+
+    <div class="header__right">
+      <a class="header__phone" href="tel:+375292873774" data-cursor="Звонок">+375 29 287 37 74</a>
+      <a class="btn btn--small" href="#booking" data-magnetic data-cursor="Бронь">
+        <span class="btn__text">Забронировать</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ========== БОКОВАЯ ШКАЛА ВРЕМЕНИ СУТОК ========== -->
+  <nav class="timeline" id="timeline" aria-label="Время суток — навигация по разделам">
+    <div class="timeline__clock" aria-hidden="true">
+      <span class="timeline__clock-time" id="clockTime">04:30</span>
+      <span class="timeline__clock-phase" id="clockPhase">Предрассвет</span>
+    </div>
+
+    <div class="timeline__track">
+      <div class="timeline__rail" aria-hidden="true">
+        <span class="timeline__fill" id="timelineFill"></span>
+        <span class="timeline__sun" id="timelineSun"></span>
+      </div>
+
+      <ol class="timeline__list">
+        <li class="timeline__item" data-target="morning">
+          <a href="#morning" data-magnetic data-cursor="Утро">
+            <span class="timeline__dot"></span>
+            <span class="timeline__time">06:00</span>
+            <span class="timeline__label">Утро</span>
+          </a>
+        </li>
+        <li class="timeline__item" data-target="day">
+          <a href="#day" data-magnetic data-cursor="День">
+            <span class="timeline__dot"></span>
+            <span class="timeline__time">12:00</span>
+            <span class="timeline__label">День</span>
+          </a>
+        </li>
+        <li class="timeline__item" data-target="evening">
+          <a href="#evening" data-magnetic data-cursor="Вечер">
+            <span class="timeline__dot"></span>
+            <span class="timeline__time">19:00</span>
+            <span class="timeline__label">Вечер</span>
+          </a>
+        </li>
+        <li class="timeline__item" data-target="night">
+          <a href="#night" data-magnetic data-cursor="Ночь">
+            <span class="timeline__dot"></span>
+            <span class="timeline__time">23:00</span>
+            <span class="timeline__label">Ночь</span>
+          </a>
+        </li>
+        <li class="timeline__item" data-target="booking">
+          <a href="#booking" data-magnetic data-cursor="Бронь">
+            <span class="timeline__dot"></span>
+            <span class="timeline__time">06:00+</span>
+            <span class="timeline__label">Бронь</span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- ========== ОСНОВНОЙ КОНТЕНТ ========== -->
+  <main id="main">
+
+    <!-- ===== HERO: предрассвет ===== -->
+    <section class="section section--hero" id="hero" data-phase="predawn" data-time="04:30" data-phase-label="Предрассвет" aria-labelledby="hero-title">
+      <div class="section__inner">
+        <p class="eyebrow" data-split="words">Загородный дом посуточно · Гродно, а/г Ратичи</p>
+
+        <h1 class="hero__title" id="hero-title" aria-label="Сутки в Ратичах">
+          <span class="mask"><span class="hero__line" data-split="chars" aria-hidden="true">Сутки</span></span>
+          <span class="mask"><span class="hero__line hero__line--italic" data-split="chars" aria-hidden="true">в Ратичах</span></span>
+        </h1>
+
+        <p class="hero__lead" data-split="lines">
+          Один дом. Одни сутки. От первых лучей над бассейном до горячей купели под звёздами — всё, что нужно для большого отдыха семьёй или компанией.
+        </p>
+
+        <ul class="hero__facts" aria-label="Коротко о доме">
+          <li data-reveal><strong>до 6</strong><span>гостей</span></li>
+          <li data-reveal><strong>2</strong><span>спальни</span></li>
+          <li data-reveal><strong>300–400 р</strong><span>за дом</span></li>
+          <li data-reveal><strong>все</strong><span>удобства</span></li>
+        </ul>
+
+        <div class="hero__actions" data-reveal>
+          <a class="btn" href="#morning" data-magnetic data-cursor="Вниз">
+            <span class="btn__text">Прожить сутки</span>
+            <span class="btn__arrow" aria-hidden="true">↓</span>
+          </a>
+          <a class="btn btn--ghost" href="tel:+375292873774" data-magnetic data-cursor="Звонок">
+            <span class="btn__text">Позвонить</span>
+          </a>
+        </div>
+
+        <div class="scroll-hint" aria-hidden="true">
+          <span class="scroll-hint__line"></span>
+          <span class="scroll-hint__text">Скролл ведёт время</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Бегущая строка с удобствами -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Горячая купель с массажем</span><i></i>
+        <span>Баня</span><i></i>
+        <span>Летний бассейн</span><i></i>
+        <span>Терраса с камином</span><i></i>
+        <span>Мангал</span><i></i>
+        <span>Горячая купель с массажем</span><i></i>
+        <span>Баня</span><i></i>
+        <span>Летний бассейн</span><i></i>
+        <span>Терраса с камином</span><i></i>
+        <span>Мангал</span><i></i>
+      </div>
+    </div>
+
+    <!-- ===== УТРО ===== -->
+    <section class="section section--morning" id="morning" data-phase="morning" data-time="06:00" data-phase-label="Утро" data-fx="ripple" aria-labelledby="morning-title">
+      <div class="section__inner section__inner--split">
+        <div class="section__col section__col--text">
+          <p class="chapter" data-reveal><span class="chapter__num">01</span><span class="chapter__time">06:00</span></p>
+
+          <h2 class="section__title" id="morning-title" aria-label="Утро. Рассвет над бассейном">
+            <span class="mask"><span data-split="chars" aria-hidden="true">Утро</span></span>
+            <span class="mask"><span class="section__title-sub" data-split="chars" aria-hidden="true">рассвет над бассейном</span></span>
+          </h2>
+
+          <p class="section__text" data-split="lines">
+            Туман ещё лежит над участком, вода в летнем бассейне — как стекло. Выходите на террасу с чашкой кофе, пока все спят: тишина, прохладный воздух и первое солнце, которое медленно заливает двор.
+          </p>
+
+          <ul class="feature-list">
+            <li class="feature" data-reveal>
+              <span class="feature__index">a</span>
+              <div>
+                <h3 class="feature__title">Летний бассейн</h3>
+                <p class="feature__text">Утренний заплыв вместо зарядки — вода, тишина и никого вокруг.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">b</span>
+              <div>
+                <h3 class="feature__title">Терраса</h3>
+                <p class="feature__text">Завтрак на свежем воздухе и вид на двор, который просыпается вместе с вами.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">c</span>
+              <div>
+                <h3 class="feature__title">Все удобства</h3>
+                <p class="feature__text">Тёплый дом, две спальни и комфорт, как в городе — только с запахом леса.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="section__col section__col--art">
+          <figure class="art" data-fx="ripple" data-reveal>
+            <div class="art__frame" aria-hidden="true"></div>
+            <figcaption class="art__caption"><span>Летний бассейн</span><em>рябь на воде</em></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ДЕНЬ ===== -->
+    <section class="section section--day" id="day" data-phase="day" data-time="12:00" data-phase-label="День" aria-labelledby="day-title">
+      <div class="section__inner section__inner--split section__inner--reverse">
+        <div class="section__col section__col--text">
+          <p class="chapter" data-reveal><span class="chapter__num">02</span><span class="chapter__time">12:00</span></p>
+
+          <h2 class="section__title" id="day-title" aria-label="День. Мангал, велосипеды и прогулки">
+            <span class="mask"><span data-split="chars" aria-hidden="true">День</span></span>
+            <span class="mask"><span class="section__title-sub" data-split="chars" aria-hidden="true">дым, колёса и дорога</span></span>
+          </h2>
+
+          <p class="section__text" data-split="lines">
+            Солнце высоко, а время будто остановилось. Садитесь на велосипеды и поезжайте по окрестностям Ратичей, гуляйте по полям и лесным тропинкам, а к обеду возвращайтесь — на мангале уже пора раскладывать угли.
+          </p>
+
+          <ul class="feature-list">
+            <li class="feature" data-reveal>
+              <span class="feature__index">a</span>
+              <div>
+                <h3 class="feature__title">Велопрогулки</h3>
+                <p class="feature__text">Спокойные маршруты по окрестностям — для всей семьи.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">b</span>
+              <div>
+                <h3 class="feature__title">Мангал</h3>
+                <p class="feature__text">Шашлык на свежем воздухе — главный семейный ритуал загородного дня.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">c</span>
+              <div>
+                <h3 class="feature__title">Прогулки</h3>
+                <p class="feature__text">Тропинки, простор и свежий воздух рядом с Гродно, без суеты и трафика.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="section__col section__col--art">
+          <figure class="art" data-fx="heat" data-reveal>
+            <div class="art__frame" aria-hidden="true"></div>
+            <figcaption class="art__caption"><span>Мангал</span><em>жар и дымок</em></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ВЕЧЕР ===== -->
+    <section class="section section--evening" id="evening" data-phase="evening" data-time="19:00" data-phase-label="Вечер" data-fx="fire" aria-labelledby="evening-title">
+      <div class="section__inner section__inner--split">
+        <div class="section__col section__col--text">
+          <p class="chapter" data-reveal><span class="chapter__num">03</span><span class="chapter__time">19:00</span></p>
+
+          <h2 class="section__title" id="evening-title" aria-label="Вечер. Закат, камин и баня">
+            <span class="mask"><span data-split="chars" aria-hidden="true">Вечер</span></span>
+            <span class="mask"><span class="section__title-sub" data-split="chars" aria-hidden="true">закат, камин и баня</span></span>
+          </h2>
+
+          <p class="section__text" data-split="lines">
+            Небо становится медным, воздух — мягким. На террасе загорается камин, и разговоры вдруг становятся длиннее. А если хочется настоящего тепла — топится баня: пар, веники и то самое чувство, что все заботы остались в городе.
+          </p>
+
+          <ul class="feature-list">
+            <li class="feature" data-reveal>
+              <span class="feature__index">a</span>
+              <div>
+                <h3 class="feature__title">Терраса с камином</h3>
+                <p class="feature__text">Живой огонь, тёплые пледы и закат на горизонте.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">b</span>
+              <div>
+                <h3 class="feature__title">Баня</h3>
+                <p class="feature__text">Настоящий жар для компании или семьи. <b class="price-inline">+100 р</b> к стоимости дома.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">c</span>
+              <div>
+                <h3 class="feature__title">Мангал на закате</h3>
+                <p class="feature__text">Ужин на углях под последний свет дня.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="section__col section__col--art">
+          <figure class="art" data-fx="fire" data-reveal>
+            <div class="art__frame" aria-hidden="true"></div>
+            <figcaption class="art__caption"><span>Камин и баня</span><em>огонь и пар</em></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== НОЧЬ ===== -->
+    <section class="section section--night" id="night" data-phase="night" data-time="23:00" data-phase-label="Ночь" data-fx="steam" aria-labelledby="night-title">
+      <div class="section__inner section__inner--split section__inner--reverse">
+        <div class="section__col section__col--text">
+          <p class="chapter" data-reveal><span class="chapter__num">04</span><span class="chapter__time">23:00</span></p>
+
+          <h2 class="section__title" id="night-title" aria-label="Ночь. Купель под звёздами">
+            <span class="mask"><span data-split="chars" aria-hidden="true">Ночь</span></span>
+            <span class="mask"><span class="section__title-sub" data-split="chars" aria-hidden="true">купель под звёздами</span></span>
+          </h2>
+
+          <p class="section__text" data-split="lines">
+            Тёмное небо, звёзды и горячая купель с массажем: над водой поднимается пар, а вокруг — только тишина. Самое лучшее время, чтобы никуда не спешить. Потом — мягкая постель в одной из двух спален и глубокий загородный сон.
+          </p>
+
+          <ul class="feature-list">
+            <li class="feature" data-reveal>
+              <span class="feature__index">a</span>
+              <div>
+                <h3 class="feature__title">Горячая купель с массажем</h3>
+                <p class="feature__text">Тёплая вода, гидромассаж и звёздное небо над головой. <b class="price-inline">+100 р</b> к стоимости дома.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">b</span>
+              <div>
+                <h3 class="feature__title">2 спальни</h3>
+                <p class="feature__text">Разместится до 6 гостей: семья, друзья или большой праздник.</p>
+              </div>
+            </li>
+            <li class="feature" data-reveal>
+              <span class="feature__index">c</span>
+              <div>
+                <h3 class="feature__title">Тишина и сон</h3>
+                <p class="feature__text">Свежий воздух и никакого городского шума — высыпаетесь по-настоящему.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="section__col section__col--art">
+          <figure class="art" data-fx="steam" data-reveal>
+            <div class="art__frame" aria-hidden="true"></div>
+            <figcaption class="art__caption"><span>Горячая купель</span><em>пар под звёздами</em></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== БРОНИРОВАНИЕ: новое утро ===== -->
+    <section class="section section--booking" id="booking" data-phase="dawn" data-time="06:00" data-phase-label="Новое утро" aria-labelledby="booking-title">
+      <div class="section__inner">
+        <p class="chapter" data-reveal><span class="chapter__num">05</span><span class="chapter__time">06:00 · следующий день</span></p>
+
+        <h2 class="section__title section__title--xl" id="booking-title" aria-label="Новое утро ваше. Забронируйте сутки">
+          <span class="mask"><span data-split="chars" aria-hidden="true">Новое утро</span></span>
+          <span class="mask"><span class="section__title-sub" data-split="chars" aria-hidden="true">начинается здесь</span></span>
+        </h2>
+
+        <p class="section__text section__text--center" data-split="lines">
+          Выберите свои сутки в Ратичах. Позвоните или напишите нам, и мы согласуем даты и подготовим дом к вашему приезду.
+        </p>
+
+        <!-- Карточки с ценами -->
+        <div class="price-grid">
+          <article class="price-card price-card--main" data-reveal data-tilt>
+            <p class="price-card__tag">Дом на сутки</p>
+            <p class="price-card__price"><span data-count="300">300</span>–<span data-count="400">400</span><small>р</small></p>
+            <p class="price-card__note">за весь дом, сутки</p>
+            <ul class="price-card__list">
+              <li>до 6 гостей</li>
+              <li>2 спальни</li>
+              <li>летний бассейн</li>
+              <li>терраса с камином</li>
+              <li>мангал</li>
+              <li>все удобства</li>
+            </ul>
+          </article>
+
+          <article class="price-card" data-reveal data-tilt>
+            <p class="price-card__tag">Допы · тепло</p>
+            <p class="price-card__price price-card__price--plus"><span>+</span><span data-count="100">100</span><small>р</small></p>
+            <p class="price-card__note">горячая купель с массажем</p>
+            <ul class="price-card__list">
+              <li>тёплая вода и гидромассаж</li>
+              <li>пар над водой и звёздное небо</li>
+            </ul>
+          </article>
+
+          <article class="price-card" data-reveal data-tilt>
+            <p class="price-card__tag">Допы · пар</p>
+            <p class="price-card__price price-card__price--plus"><span>+</span><span data-count="100">100</span><small>р</small></p>
+            <p class="price-card__note">баня</p>
+            <ul class="price-card__list">
+              <li>настоящий жар</li>
+              <li>для семьи и компании</li>
+            </ul>
+          </article>
+        </div>
+
+        <!-- Контакты -->
+        <address class="contacts" data-reveal>
+          <div class="contacts__item">
+            <span class="contacts__label">Телефон</span>
+            <a class="contacts__value contacts__value--big" href="tel:+375292873774" data-magnetic data-cursor="Звонок">+375 29 287 37 74</a>
+          </div>
+          <div class="contacts__item">
+            <span class="contacts__label">Instagram</span>
+            <!-- TODO: замените REPLACE_ME на реальный ник -->
+            <a class="contacts__value" href="https://instagram.com/REPLACE_ME" target="_blank" rel="noopener noreferrer" data-magnetic data-cursor="Instagram">@REPLACE_ME</a>
+          </div>
+          <div class="contacts__item">
+            <span class="contacts__label">Адрес</span>
+            <span class="contacts__value">Гродно, а/г Ратичи</span>
+          </div>
+        </address>
+
+        <div class="booking__actions" data-reveal>
+          <a class="btn btn--xl" href="tel:+375292873774" data-magnetic data-cursor="Звонок">
+            <span class="btn__text">Забронировать по телефону</span>
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+
+        <ol class="steps" aria-label="Как забронировать">
+          <li data-reveal><span>01</span> Позвоните или напишите нам</li>
+          <li data-reveal><span>02</span> Согласуем даты и допы: купель, баня</li>
+          <li data-reveal><span>03</span> Приезжайте и проживите сутки</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========== ПОДВАЛ ========== -->
+  <footer class="footer">
+    <p class="footer__brand">Family House</p>
+    <p class="footer__line">Загородный дом посуточно · Гродно, а/г Ратичи</p>
+    <p class="footer__line">
+      <a href="tel:+375292873774" data-cursor="Звонок">+375 29 287 37 74</a>
+    </p>
+    <p class="footer__copy">© 2026 Family House. Все сутки — ваши.</p>
+  </footer>
+
+  <script defer src="script.js"></script>
+</body>
+</html>
